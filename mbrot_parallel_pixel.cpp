@@ -5,6 +5,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include <chrono> 
+using namespace std::chrono; 
+
 using namespace std;
 
 #define MCW MPI_COMM_WORLD
@@ -90,7 +93,7 @@ int main(int argc, char **argv){
 
   // Use process 0 as the master process
   if(!rank) {
-    long startTime = time(NULL);
+    auto start = high_resolution_clock::now(); 
 
     ofstream fout;
     fout.open("image.ppm");
@@ -153,7 +156,9 @@ int main(int argc, char **argv){
     fout << endl;
     fout.close();
 
-    cout << "TIME: " << time(NULL) - startTime << endl;
+    auto stop = high_resolution_clock::now(); 
+    auto duration = duration_cast<microseconds>(stop - start);
+    cout << "TIME: " << duration.count() << " microseconds" << endl;
   }
 
 
