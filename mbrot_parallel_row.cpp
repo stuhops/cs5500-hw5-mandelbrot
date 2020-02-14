@@ -63,13 +63,8 @@ int mbrotIters(Complex c, int maxIters) {
   return i;
 }
 
-
-// Main process sends out everything as master slave
-// other processes do the calculations
-// Master adds them all to the file
-// End
-
-
+// Use command line arguments to initialize main.
+// (Real0, Imaginary0, Real1)
 int main(int argc, char **argv){
 
   Complex c1, c2, c3;
@@ -86,10 +81,18 @@ int main(int argc, char **argv){
   int flag2 = 1;
   int flag3 = 1;
 
-  c1.r = 2;
-  c1.i = 2;
-  c2.r = -2;
-  c2.i = -2;
+  if(argc == 4) {
+    c1.r = atof(argv[1]);
+    c1.i = atof(argv[2]);
+    c2.r = atof(argv[3]);
+    c2.i = atof(argv[3]) - atof(argv[1]);
+  }
+  else {
+    c1.r = 2;
+    c1.i = 2;
+    c2.r = -2;
+    c2.i = -2;
+  }
 
   // Use process 0 as the master process
   if(!rank) {
