@@ -108,48 +108,43 @@ int main(int argc, char **argv){
     fout << DIM << " " << DIM << endl;
     fout << 255 << endl;
 
-    for (int j=0; j < DIM; ++j) {
-      for( int i=0; i < DIM; ++i) {
-
-        int tmpData[] = {i, j};
-        
-        while(true) {
-          if(flag1) {
-            flag1 = 0;
-            MPI_Send(&tmpData, 2, MPI_INT, 1, 0, MCW);
-            MPI_Irecv(&data[i][j], 1, MPI_INT, 1, 1, MCW, &myRequest1);
-            break;
-          }
-          else if(flag2) {
-            flag2 = 0;
-            MPI_Send(tmpData, 2, MPI_INT, 2, 0, MCW);
-            MPI_Irecv(&data[i][j], 1, MPI_INT, 2, 2, MCW, &myRequest2);
-            break;
-          }
-          else if(flag3) {
-            flag3 = 0;
-            MPI_Send(tmpData, 2, MPI_INT, 3, 0, MCW);
-            MPI_Irecv(&data[i][j], 1, MPI_INT, 3, 3, MCW, &myRequest3);
-            break;
-          }
-
-          MPI_Test(&myRequest1, &flag1, &myStatus1);
-          MPI_Test(&myRequest2, &flag2, &myStatus2);
-          MPI_Test(&myRequest3, &flag3, &myStatus3);
+    for (int i=0; i < DIM; ++i) {
+      while(true) {
+        if(flag1) {
+          flag1 = 0;
+          MPI_Send(&i, 1, MPI_INT, 1, 0, MCW);
+          MPI_Irecv(&data[i], DIM, MPI_INT, 1, 1, MCW, &myRequest1);
+          break;
         }
+        else if(flag2) {
+          flag2 = 0;
+          MPI_Send(&i, 1, MPI_INT, 2, 0, MCW);
+          MPI_Irecv(&data[i], DIM, MPI_INT, 2, 2, MCW, &myRequest2);
+          break;
+        }
+        else if(flag3) {
+          flag3 = 0;
+          MPI_Send(&i, 1, MPI_INT, 3, 0, MCW);
+          MPI_Irecv(&data[i], DIM, MPI_INT, 3, 3, MCW, &myRequest3);
+          break;
+        }
+
+        MPI_Test(&myRequest1, &flag1, &myStatus1);
+        MPI_Test(&myRequest2, &flag2, &myStatus2);
+        MPI_Test(&myRequest3, &flag3, &myStatus3);
       }
     }
 
     for(int i = 1; i < size; i++) {
-      int tmpData[] = {-1, -1};
-      MPI_Send(&tmpData, 2, MPI_INT, i, 0, MCW);
+      int tmpData = -1;
+      MPI_Send(&tmpData, 1, MPI_INT, i, 0, MCW);
     }
 
     for (int j=0; j < DIM; ++j) {
       for( int i=0; i < DIM; ++i) {
-        fout << rcolor(data[i][j]) << " ";
-        fout << gcolor(data[i][j]) << " ";
-        fout << bcolor(data[i][j]) << " ";
+        fout << rcolor(data[j][i]) << " ";
+        fout << gcolor(data[j][i]) << " ";
+        fout << bcolor(data[j][i]) << " ";
       }
     }
 
@@ -163,18 +158,22 @@ int main(int argc, char **argv){
 
 
   else {
-    int recData[2] = {-1, -1};
+    int recData = -1;
     while(true) {
-      MPI_Recv(recData, 2, MPI_INT, MPI_ANY_SOURCE, 0, MCW, MPI_STATUS_IGNORE);
+      MPI_Recv(&recData, 1, MPI_INT, MPI_ANY_SOURCE, 0, MCW, MPI_STATUS_IGNORE);
 
-      if(recData[0] == -1)
+      if(recData == -1)
         break;
-      
-      c.r = (recData[0]*(c1.r - c2.r) / DIM) + c2.r;
-      c.i = (recData[1]*(c1.i - c2.i) / DIM) + c2.i;
-      int iters = mbrotIters(c, 255);
 
-      MPI_Send(&iters, 1, MPI_INT, 0, rank, MCW);
+      int iters[DIM];
+      
+      for( int i=0; i < DIM; ++i) {
+        c.r = (i*(c1.r - c2.r) / DIM) + c2.r;
+        c.i = (recData*(c1.i - c2.i) / DIM) + c2.i;
+        iters[i] = mbrotIters(c, 255);
+      }
+
+      MPI_Send(&iters, DIM, MPI_INT, 0, rank, MCW);
     }
   }
 

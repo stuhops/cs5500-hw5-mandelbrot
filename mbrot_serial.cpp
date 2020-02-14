@@ -27,8 +27,8 @@ Complex operator * (Complex s, Complex t) {
 
 int rcolor(int iters) {
   if(iters == 255) 
-    return 0;
-  return 32 * (iters % 8);
+    return 266;
+  return 266 - 32 * (iters % 8);
 }
 
 int gcolor(int iters) {
